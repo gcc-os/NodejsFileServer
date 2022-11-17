@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>G站</title>
+        <meta charset="UTF-8">
+    </head>
+    <script type="text/javascript" src="/node_modules/vue/dist/vue.global.js"></script>
+    <script type="text/javascript" src="/node_modules/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="/src/pages/index/server.js"></script>
+    <style>
+        body{
+            font-size: 1rem;
+        }
+        .path-contain{
+            margin-top: 20px;
+            border-bottom: 4px solid black;
+        }
+        .path-title{
+            color: black;
+            font-size: 22px;
+            padding-right: 8px;
+        }
+        .track{
+            color: black;
+            cursor: pointer;
+            font-size: 25px;
+        }
+        .folder{
+            margin-top: 4px;
+            color: black;
+            font-weight: bold;
+            padding: 4px;
+        }
+        .folder-item{
+            cursor: pointer;
+            padding: 4px;
+            height: 32px;
+            line-height: 32px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+        }
+        .folder-item:hover {
+            background-color: #f1f1f1;
+        }
+        .folder-item-name{
+            padding-left: 8px;
+        }
+        .icon{
+            width: 20px;
+            height: 20px;
+        }
+        .file-menu{
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f1f1;
+            padding-top: 12px;
+        }
+        .file-menu-item{
+            cursor: pointer;
+            padding: 4px;
+            height: 32px;
+            line-height: 32px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+        }
+        .file-menu-item-title{
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .file-menu-item-right{
+            padding-left: 20px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        .file-new-input{
+            flex: 1;
+            padding: 0 8px;
+            height: 22px;
+            line-height: 22px;
+            border-radius: 2px;
+            border: 1px solid #f1f1f1;
+            text-align: right;
+        }
+        .file-new-btn{
+            padding: 0 12px;
+            border-radius: 2px;
+            color: white;
+            font-size: 14px;
+            height: 24px;
+            line-height: 24px;
+            margin: 0 8px;
+        }
+        .file-new-btn-confirm{
+            background-color: green;
+        }
+        .file-new-btn-cancel{
+            background-color: gainsboro;
+        }
+        .folder-item-content{
+            flex: 1;
+            align-items: center;
+        }
+        .folder-item-menu{
+            width: 3rem;
+            font-size: .4rem;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+    <body>
+        <div id="page">
+            <!-- 文件路径 -->
+            <div class="path-contain">
+                <span class="path-title">当前路径:</span> <span class="track" v-for="folder in folderTrack" @click="bindClickTrack(folder.id)">{{folder.name}}/</span>
+            </div>
+            <!-- 文件内容 -->
+            <div class="file-menu">
+                <div class="file-menu-item">
+                    <div class="file-menu-item-title">
+                        <img class="icon" src="/src/pages/index/icon-new-folder.png"/>
+                        <span class="folder-item-name">新建文件夹（在当前目录）</span>
+                    </div>
+                    <div class="file-menu-item-right">
+                        <input type="text" placeholder="输入新建文件夹的名称" class="file-new-input" @change="bindNewFileNameInput" v-model="newFileName"/>
+                        <label class="file-new-btn file-new-btn-cancel" @click="bindNewFileCancel">取消</label>
+                        <label v-bind:class="newFileName?'file-new-btn file-new-btn-confirm':'file-new-btn file-new-btn-cancel'" @click="bindNewFileConfirm">确定</label>
+                    </div>
+                </div>
+                <div class="file-menu-item">
+                    <div class="file-menu-item-title">
+                        <img class="icon" src="/src/pages/index/icon-upload.png"/>
+                        <span class="folder-item-name">上传文件（至当前目录）</span>
+                    </div>
+                    <div class="file-menu-item-right">
+                        <input type="file" @change="bindFileInput"/>
+                    </div>
+                </div>
+            </div>
+            <div class="folder">
+                <div class="folder-item" v-for="file in folder.files" @click="bindClickFolder(file)">
+                    <div class="folder-item-content">
+                        <img v-if="file.isDirectory" class="icon" src="/src/pages/index/icon-folder.png"/>
+                        <img v-else class="icon" src="/src/pages/index/icon-file-2.png"/>
+                        <span class="folder-item-name">{{file.name}}</span>    
+                    </div>
+                    <div class="folder-item-menu" @click="bindClickFolderDownload(file)">
+                        下载
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </body>
+    <script>
+        const View = {
+            data() {
+                return {
+                    folder:{files:[]},
+                    folderTrack:[],
+                    message: 'G站',
+                    newFileName:'',
+                }
+            },
+            mounted(){
+                this.getRootFolders();
+            },
+            methods:{
+                bindNewFileNameInput(e){
+                    console.log("bindNewFileNameInput===",e);
+                },
+                bindClickTrack(folderID){
+                    if(this.folder.id === folderID) return;
+                    const _this = this;
+                    Http.GetFolder(folderID).then(res=>{
+                        _this.refreshData(res.data)
+                    });
+                },
+                bindClickFolder(file){
+                    if(!file.isDirectory){
+                        return;
+                    }
+                    this.getFolderInfo(file.id)
+                },
+                bindClickFolderDownload(file){
+                    Http.DownloadFiles(file.id)
+                },
+                bindFileInput(e){
+                    console.log("bindFileInput=== e:",e);
+                    console.log("bindFileInput=== e:",e.target.files);
+                    Http.UploadFiles(this.folder.id, e.target.files).then(()=>{
+                        this.getFolderInfo(this.folder.id);
+                    });
+                },
+                getFolderInfo(fileID){
+                    const _this = this;
+                    Http.GetFolder(fileID).then(res=>{
+                        _this.refreshData(res.data)
+                    });
+                },
+                getRootFolders(){
+                    const _this = this;
+                    Http.GetFolder().then(res=>{
+                        _this.refreshData(res.data)
+                    });
+                },
+                refreshData(info){
+                    this.folder = info.fileInfo;
+                    this.folderTrack = info.folderTrack;
+                },
+                bindNewFileCancel(){
+                    this.newFileName = '';
+                    console.log("bindNewFileCancel");
+                },
+                bindNewFileConfirm(){
+                    console.log("bindNewFileConfirm");
+                    // 检查在当前文件夹内是否有同名文件夹
+                    let _isDuplication = false;
+                    this.folder.files.forEach(file => {
+                        if(file.isDirectory && file.name.toLocaleLowerCase() == this.newFileName.toLocaleLowerCase()){
+                            _isDuplication = true;
+                        }
+                    });
+                    if(_isDuplication){
+                        alert("此名称在当前目录中已存在!");
+                        return;
+                    }
+                    Http.CreateFolder({name:this.newFileName, id:this.folder.id}).then(()=>{
+                        this.getFolderInfo(this.folder.id);
+                    }).catch(e=>{
+                        alert(e.msg);
+                    });
+                }
+            }
+        }
+        Vue.createApp(View).mount('#page')
+    </script>
+</html>

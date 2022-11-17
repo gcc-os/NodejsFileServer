@@ -1,0 +1,18 @@
+{
+  "name": "transporter",
+  "version": "1.0.0",
+  "description": "GCC云盘",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.1.3",
+    "formidable": "^2.0.1",
+    "mime": "^3.0.0",
+    "vue": "^3.2.41"
+  }
+}
