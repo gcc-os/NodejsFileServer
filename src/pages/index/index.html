@@ -3,6 +3,7 @@
     <head>
         <title>G站</title>
         <meta charset="UTF-8">
+        <link rel="shortcut icon" href="/src/pages/index/favicon.ico">
     </head>
     <script type="text/javascript" src="/node_modules/vue/dist/vue.global.js"></script>
     <script type="text/javascript" src="/node_modules/axios/dist/axios.min.js"></script>
@@ -185,7 +186,7 @@
                     this.getFolderInfo(file.id)
                 },
                 bindClickFolderDownload(file){
-                    Http.DownloadFiles(file.id)
+                    Http.DownloadFiles(file)
                 },
                 bindFileInput(e){
                     console.log("bindFileInput=== e:",e);
